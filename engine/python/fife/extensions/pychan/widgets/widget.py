@@ -89,23 +89,23 @@ class Widget(object):
 
 	"""
 
-	ATTRIBUTES = [ Attr('name'), 
+	ATTRIBUTES = [ Attr('name'),
 				   PointAttr('position'),
-				   PointAttr('min_size'), 
-				   PointAttr('size'), 
+				   PointAttr('min_size'),
+				   PointAttr('size'),
 				   PointAttr('max_size'),
 				   ColorAttr('base_color'),
 				   ColorAttr('background_color'),
 				   ColorAttr('foreground_color'),
 				   ColorAttr('selection_color'),
-				   Attr('style'), 
+				   Attr('style'),
 				   Attr('font'),
 				   IntAttr('border_size'),
 				   Attr('position_technique'),
 				   IntAttr('vexpand'),
-				   IntAttr('hexpand'), 
+				   IntAttr('hexpand'),
 				   UnicodeAttr('helptext'),
-				   BoolAttr('is_focusable'), 
+				   BoolAttr('is_focusable'),
 				   UnicodeAttr('comment')
 		]
 
@@ -129,14 +129,14 @@ class Widget(object):
 
 
 	def __init__(self,
-				 parent = None, 
+				 parent = None,
 				 name = None,
 				 size = None,
-				 min_size = None, 
-				 max_size = None, 
-				 helptext = None, 
-				 position = None, 
-				 style = None, 
+				 min_size = None,
+				 max_size = None,
+				 helptext = None,
+				 position = None,
+				 style = None,
 				 hexpand = None,
 				 vexpand = None,
 				 font = None,
@@ -148,25 +148,25 @@ class Widget(object):
 				 position_technique = None,
 				 is_focusable = None,
 				 comment = None):
-		
+
 		# Make sure the real_widget has been created
 		assert( hasattr(self,'real_widget') )
-		
+
 		self.event_mapper = events.EventMapper(self)
-		
+
 		self._visible = False
 		self._extra_border = (0,0)
 
 		# Data distribution & retrieval settings
 		self.accepts_data = False
 		self.accepts_initial_data = False
-		
+
 		#set all defaults
 		if get_manager().compat_layout:
 			self.hexpand, self.vexpand = 0,0
 		else:
 			self.hexpand = self.DEFAULT_HEXPAND
-			self.vexpand = self.DEFAULT_VEXPAND 		
+			self.vexpand = self.DEFAULT_VEXPAND
 
 		self.name = self.DEFAULT_NAME
 		self.has_name = False
@@ -180,7 +180,7 @@ class Widget(object):
 		self.helptext = self.DEFAULT_HELPTEXT
 		self.comment = self.DEFAULT_COMMENT
 		self._usedPrefixes = []
-	
+
 		# Parent attribute makes sure we only have one parent,
 		# that tests self.__parent - so make sure we have the attr here.
 		self.__parent = None
@@ -190,26 +190,26 @@ class Widget(object):
 		if style is None and parent:
 			style = parent.style
 		self.style = style or "default"
-		
+
 		# override everything style has set
 		if vexpand is not None:	self.vexpand = vexpand
 		if hexpand is not None: self.hexpand = hexpand
-		if name is not None: 
+		if name is not None:
 			self.name = name
 			self.has_name = True
 
 		if position is not None: self.position = position
 		if position_technique is not None: self.position_technique = position_technique
 		if font is not None: self.font = font
-		
+
 		# only set this if it's provided
 		if is_focusable is not None: self.is_focusable = is_focusable
-		
+
 		if min_size is not None: self.min_size = min_size
 		if max_size is not None: self.max_size = max_size
 		if size is not None: self.size = size
 		if border_size is not None: self.border_size = border_size
-		
+
 		if helptext is not None: self.helptext = helptext
 		if comment is not None: self.comment = comment
 
@@ -218,19 +218,19 @@ class Widget(object):
 		if background_color is not None: self.background_color = background_color
 		if foreground_color is not None: self.foreground_color = foreground_color
 		if selection_color is not None: self.selection_color = selection_color
-		
-	
+
+
 	def clone(self, prefix):
 		"""
 		Clones this widget.
-		
+
 		Concrete widgets should implement this one, if not, an exception should
 		be raised.
-		
+
 		Prefix is used to create the name of the cloned widget.
 		"""
 		raise RuntimeError("No implementation of clone method for %s" % self.__class__)
-			      
+
 
 	def execute(self, bind, focus=None):
 		"""
@@ -273,11 +273,11 @@ class Widget(object):
 
 	def requestFocus(self):
 		"""
-		Requests focus.  
-		
-		The widget must be focusable in order for this to work.  See 
+		Requests focus.
+
+		The widget must be focusable in order for this to work.  See
 		the is_focusable property.
-		
+
 		"""
 		if self.isVisible():
 			self.real_widget.requestFocus()
@@ -325,49 +325,34 @@ class Widget(object):
 		Show the widget and all contained widgets.
 		"""
 		if self._visible: return
-		
+
 		if self.parent:
 			self.beforeShow()
-			self.parent.showChild(self)
+			self.real_widget.setVisible(True)
 			self.parent.adaptLayout()
 			self._visible = True
 		else:
 			self.adaptLayout()
 			self.beforeShow()
 			get_manager().show(self)
-			self._visible = True	
-
-		#show real widget to distribute a widgetShown event.
-		self.real_widget.setVisible(True)	
-						
-		def _show(widget):
-			widget._visible = True
-				
-		self.deepApply(_show, shown_only=True)
+			self._visible = True
 
 	def hide(self):
 		"""
 		Hide the widget and all contained widgets.
 		"""
 		if not self._visible: return
-		
+
 		if self.parent:
-			self.parent.hideChild(self)
+			self.real_widget.setVisible(False)
+			self._visible = False
 			self.parent.adaptLayout()
 		else:
 			get_manager().hide(self)
 
-		self.afterHide()
 		self._visible = False
-		
-	    #Hide real widget to distribute a widgetHidden event.
-		self.real_widget.setVisible(False)		
-				
-		
-		def _hide(widget):
-			widget._visible = False
-			
-		self.deepApply(_hide, shown_only=True)
+		self.afterHide()
+
 
 	def isVisible(self):
 		"""
@@ -410,7 +395,7 @@ class Widget(object):
 		This method is called just before the widget is shown.
 		You can override this in derived widgets to add finalization
 		behaviour.
-		
+
 		NOTE:
 			- if your widget is a container, you have to call
 			  _resetTiling(), as you will loose this call by using
@@ -445,9 +430,9 @@ class Widget(object):
 		Create a dictionary of child widgets with the keys being
 		their name. This will contain only Widgets which have
 		a name different from "__unnamed__" (which is the default).
-		
+
 		@param include_unnamed: Defaults to false. If this is true unnamed widgets are added, too.
-		
+
 		The values are lists of widgets, so not only unique names
 		are handled correctly.
 
@@ -514,17 +499,17 @@ class Widget(object):
 	def insertChild(self, widget, position):
 		"""
 		This function inserts a widget a given index in the child list.
-		
-		See L{addChild} and L{insertChildBefore} 
+
+		See L{addChild} and L{insertChildBefore}
 		"""
 		raise RuntimeError("Trying to insert a widget to %s, which doesn't allow this." % repr(self))
-		
+
 	def insertChildBefore(self, widget, before):
 		"""
 		Inserts a child widget before a given widget. If the widget isn't found,
 		the widget is appended to the children list.
-		
-		See L{addChild} and L{insertChild} 
+
+		See L{addChild} and L{insertChild}
 		"""
 		raise RuntimeError("Trying to insert a widget to %s, which doesn't allow this." % repr(self))
 
@@ -807,7 +792,7 @@ class Widget(object):
 		Recursively apply a callable to all contained widgets and then the widget itself.
 		"""
 		visitorFunc(self)
-		
+
 	def getAbsolutePos(self):
 		"""
 		Get absolute position on screen
@@ -910,7 +895,7 @@ class Widget(object):
 	def _setParent(self,parent):
 		if parent and not issubclass(type(parent), Widget):
 			raise RuntimeError("Parent must be subclass of the Widget type.")
-	
+
 		if self.__parent is not parent:
 			if self.__parent and parent is not None:
 				print "Widget containment fumble:", self, self.__parent, parent
@@ -930,20 +915,20 @@ class Widget(object):
 	def _setFocusable(self, b): self.real_widget.setFocusable(b)
 	def _isFocusable(self):
 		return self.real_widget.isFocusable()
-	              
+
 	def _createNameWithPrefix(self, prefix):
-		
+
 		if not isinstance(prefix, str):
 			raise RuntimeError("Widget names should be prefixed with a string")
-		
+
 		if prefix in self._usedPrefixes:
 			raise RuntimeError("Widget %s already cloned with prefix %s" % (self.name, prefix))
-		
+
 		if len(prefix) == 0:
 			raise RuntimeError("New widget name cannot be created with an empty prefix")
-		
+
 		self._usedPrefixes.append(prefix)
-		
+
 		return prefix + self.name
 
 	x = property(_getX,_setX)
@@ -958,4 +943,4 @@ class Widget(object):
 	position = property(_getPosition,_setPosition)
 	font = property(_getFont,_setFont)
 	border_size = property(_getBorderSize,_setBorderSize)
-	is_focusable = property(_isFocusable,_setFocusable) 
+	is_focusable = property(_isFocusable,_setFocusable)

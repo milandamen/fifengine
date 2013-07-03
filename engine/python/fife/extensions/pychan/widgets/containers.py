@@ -49,26 +49,26 @@ class Container(Widget):
 	  - children - Just contains the list of contained child widgets. Do NOT modify.
 	"""
 
-	ATTRIBUTES = Widget.ATTRIBUTES + [ IntAttr('padding'), 
-									   Attr('background_image'), 
+	ATTRIBUTES = Widget.ATTRIBUTES + [ IntAttr('padding'),
+									   Attr('background_image'),
 									   BoolAttr('opaque'),
-									   PointAttr('margins') 
+									   PointAttr('margins')
 									 ]
 
 	DEFAULT_OPAQUE = True
 	DEFAULT_MARGINS = 5,5
 	DEFAULT_PADDING = 5
 	DEFAULT_BACKGROUND = None
-	
-	def __init__(self, 
-				 parent = None, 
+
+	def __init__(self,
+				 parent = None,
 				 name = None,
 				 size = None,
-				 min_size = None, 
-				 max_size = None, 
-				 helptext = None, 
-				 position = None, 
-				 style = None, 
+				 min_size = None,
+				 max_size = None,
+				 helptext = None,
+				 position = None,
+				 style = None,
 				 hexpand = None,
 				 vexpand = None,
 				 font = None,
@@ -85,11 +85,10 @@ class Container(Widget):
 				 opaque = None,
 				 margins = None,
 				 _real_widget = None):
-				 
+
 		self.real_widget = _real_widget or fifechan.Container()
 		self.children = []
 		self.children_position_cache = []
-		self.hidden_children = []
 		self._background = []
 		self._background_image = None
 		self.background_image = self.DEFAULT_BACKGROUND
@@ -97,15 +96,15 @@ class Container(Widget):
 		self.padding = self.DEFAULT_PADDING
 		self.opaque = self.DEFAULT_OPAQUE
 
-		super(Container,self).__init__(parent=parent, 
-									   name=name, 
-									   size=size, 
-									   min_size=min_size, 
+		super(Container,self).__init__(parent=parent,
+									   name=name,
+									   size=size,
+									   min_size=min_size,
 									   max_size=max_size,
-									   helptext=helptext, 
+									   helptext=helptext,
 									   position=position,
-									   style=style, 
-									   hexpand=hexpand, 
+									   style=style,
+									   hexpand=hexpand,
 									   vexpand=vexpand,
 									   font=font,
 									   base_color=base_color,
@@ -116,21 +115,21 @@ class Container(Widget):
 									   position_technique=position_technique,
 									   is_focusable=is_focusable,
 									   comment=comment)
-									   
+
 		if margins is not None: self.margins = margins
 		if padding is not None: self.padding = padding
 		if opaque is not None: self.opaque = opaque
 		if background_image is not None: self.background_image = background_image
-		
+
 	def clone(self, prefix):
-		containerClone = Container(None, 
+		containerClone = Container(None,
 						self._createNameWithPrefix(prefix),
 						self.size,
-						self.min_size, 
-						self.max_size, 
-						self.helptext, 
-						self.position, 
-						self.style, 
+						self.min_size,
+						self.max_size,
+						self.helptext,
+						self.position,
+						self.style,
 						self.hexpand,
 						self.vexpand,
 						self.font,
@@ -146,23 +145,23 @@ class Container(Widget):
 						self.background_image,
 						self.opaque,
 						self.margins)
-			
+
 		containerClone.addChildren(self._cloneChildren(prefix))
-			
+
 		return containerClone
-		
+
 
 	def addChild(self, widget):
 		"""
 		Adds a child widget to the container.
-		
+
 		This makes the childs widgets visible state the same as the containers.
 		i.e. if the containter is visible the child will be as well and if the
 		container widget is hidden so will the child.  The child however WILL
-		be shown when you show the container widget.  If you want the child to 
+		be shown when you show the container widget.  If you want the child to
 		be hidden when you show the container widget you must call child.hide().
 		"""
-		
+
 		if isinstance(widget, Spacer):
 			self.addSpacer(widget)
 			return
@@ -172,20 +171,8 @@ class Container(Widget):
 		self.children.append(widget)
 		self.children_position_cache.append(widget)
 		self.real_widget.add(widget.real_widget)
-		
-		#update the states of the child widgets.  This does not actually call
-		#the show() or hide() functions of the widget.
-		if self._visible:
-			def _show(shown_widget):
-				shown_widget._visible = True
-				
-			self.deepApply(_show, shown_only=True)
-		else:
-			def _hide(hidden_widget):
-				hidden_widget._visible = False
-				
-			self.deepApply(_hide)
-		
+
+
 	def insertChild(self, widget, position):
 		if position > len(self.children) or 0-position > len(self.children):
 			print "insertChild: Warning: Index overflow.",
@@ -194,13 +181,13 @@ class Container(Widget):
 			else:
 				self.insertChild(widget, 0)
 			return
-		
+
 		children = self.children[0:position]+[widget]+self.children[position:]
 		#assert len(children) == len(self.children) + 1
 
 		for child_to_remove in self.children[:]:
 			self.removeChild(child_to_remove)
-		
+
 		for child in children:
 			self.addChild(child)
 
@@ -210,7 +197,7 @@ class Container(Widget):
 		self.insertChild(widget, self.children.index(before))
 
 	def removeChild(self,widget):
-		if not widget in self.children and not widget in self.hidden_children:
+		if not widget in self.children:
 			raise RuntimeError("%s does not have %s as direct child widget." % (str(self),str(widget)))
 
 		if widget in self.children:
@@ -220,41 +207,8 @@ class Container(Widget):
 		if widget in self.children_position_cache:
 			self.children_position_cache.remove(widget)
 
-		if widget in self.hidden_children:
-			self.hidden_children.remove(widget)
-
 		widget.parent = None
 
-	def hideChild(self, child):
-		if not child in self.children:
-			raise RuntimeError("%s does not have %s as direct child widget." % (str(self), str(child)))
-		
-		self.hidden_children.append(child)
-		self.children.remove(child)
-
-		self.real_widget.remove(child.real_widget)
-		child._visible = False
-		
-	def showChild(self, child):
-		if not child in self.hidden_children:
-			return
-	
-		self.hidden_children.remove(child)
-		
-		children = self.children[:]
-		children_position_cache = self.children_position_cache[:]
-		hidden_children = self.hidden_children[:]
-
-		for widget in children:
-			self.removeChild(widget)
-		
-		for child_widget in children_position_cache:
-			if not child_widget in hidden_children:
-				self.addChild(child_widget)
-		
-		self.children_position_cache = children_position_cache[:]
-		self.hidden_children = hidden_children[:]
-			
 	def add(self,*widgets):
 		print "PyChan: Deprecation warning: Please use 'addChild' or 'addChildren' instead."
 		self.addChildren(*widgets)
@@ -268,11 +222,8 @@ class Container(Widget):
 		return max(widget.height for widget in self.children)
 
 	def deepApply(self,visitorFunc, leaves_first = True, shown_only = False):
-		if not shown_only:
-			children = self.children + self.hidden_children
-		else:
-			children = self.children
-		
+		children = self.children
+
 		if leaves_first:
 			for child in children:
 				child.deepApply(visitorFunc, leaves_first = leaves_first, shown_only = shown_only)
@@ -284,7 +235,7 @@ class Container(Widget):
 	def beforeShow(self):
 
 		# This is required because beforeShow() is NOT called on nested
-		# containers or child widgets.  This ensures that background tiled 
+		# containers or child widgets.  This ensures that background tiled
 		# images are shown properly
 		def _resetTilingChildren(widget):
 			tilingMethod = getattr(widget, "_resetTiling", None)
@@ -339,13 +290,13 @@ class Container(Widget):
 	def _setOpaque(self,opaque): self.real_widget.setOpaque(opaque)
 	def _getOpaque(self): return self.real_widget.isOpaque()
 	opaque = property(_getOpaque,_setOpaque)
-	
+
 	def _cloneChildren(self, prefix):
 		"""
 		Clones each child and return the clones in a list.
 		"""
 		cloneList = [ child.clone(prefix) for child in self.children ]
-		
+
 		return cloneList
 
 class VBox(VBoxLayoutMixin,Container):
@@ -364,15 +315,15 @@ class VBox(VBoxLayoutMixin,Container):
 	DEFAULT_HEXPAND = 0
 	DEFAULT_VEXPAND = 1
 
-	def __init__(self, 
-				 parent = None, 
+	def __init__(self,
+				 parent = None,
 				 name = None,
 				 size = None,
-				 min_size = None, 
-				 max_size = None, 
-				 helptext = None, 
-				 position = None, 
-				 style = None, 
+				 min_size = None,
+				 max_size = None,
+				 helptext = None,
+				 position = None,
+				 style = None,
 				 hexpand = None,
 				 vexpand = None,
 				 font = None,
@@ -389,16 +340,16 @@ class VBox(VBoxLayoutMixin,Container):
 				 opaque = None,
 				 margins = None,
 				 _real_widget = None):
-				 
-		super(VBox,self).__init__(parent=parent, 
-								  name=name, 
-								  size=size, 
-								  min_size=min_size, 
+
+		super(VBox,self).__init__(parent=parent,
+								  name=name,
+								  size=size,
+								  min_size=min_size,
 								  max_size=max_size,
-								  helptext=helptext, 
+								  helptext=helptext,
 								  position=position,
-								  style=style, 
-								  hexpand=hexpand, 
+								  style=style,
+								  hexpand=hexpand,
 								  vexpand=vexpand,
 								  font=font,
 								  base_color=base_color,
@@ -415,14 +366,14 @@ class VBox(VBoxLayoutMixin,Container):
 								  margins=margins,
 								  _real_widget=_real_widget)
 	def clone(self, prefix):
-		vboxClone = VBox(None, 
+		vboxClone = VBox(None,
 					self._createNameWithPrefix(prefix),
 					self.size,
-					self.min_size, 
-					self.max_size, 
-					self.helptext, 
-					self.position, 
-					self.style, 
+					self.min_size,
+					self.max_size,
+					self.helptext,
+					self.position,
+					self.style,
 					self.hexpand,
 					self.vexpand,
 					self.font,
@@ -438,9 +389,9 @@ class VBox(VBoxLayoutMixin,Container):
 					self.background_image,
 					self.opaque,
 					self.margins)
-					
+
 		vboxClone.addChildren(self._cloneChildren(prefix))
-					
+
 		return vboxClone
 
 class HBox(HBoxLayoutMixin,Container):
@@ -452,15 +403,15 @@ class HBox(HBoxLayoutMixin,Container):
 	DEFAULT_HEXPAND = 1
 	DEFAULT_VEXPAND = 0
 
-	def __init__(self, 
-				 parent = None, 
+	def __init__(self,
+				 parent = None,
 				 name = None,
 				 size = None,
-				 min_size = None, 
-				 max_size = None, 
-				 helptext = None, 
-				 position = None, 
-				 style = None, 
+				 min_size = None,
+				 max_size = None,
+				 helptext = None,
+				 position = None,
+				 style = None,
 				 hexpand = None,
 				 vexpand = None,
 				 font = None,
@@ -477,16 +428,16 @@ class HBox(HBoxLayoutMixin,Container):
 				 opaque = None,
 				 margins = None,
 				 _real_widget = None):
-				 
-		super(HBox,self).__init__(parent=parent, 
-								  name=name, 
-								  size=size, 
-								  min_size=min_size, 
+
+		super(HBox,self).__init__(parent=parent,
+								  name=name,
+								  size=size,
+								  min_size=min_size,
 								  max_size=max_size,
-								  helptext=helptext, 
+								  helptext=helptext,
 								  position=position,
-								  style=style, 
-								  hexpand=hexpand, 
+								  style=style,
+								  hexpand=hexpand,
 								  vexpand=vexpand,
 								  font=font,
 								  base_color=base_color,
@@ -507,11 +458,11 @@ class HBox(HBoxLayoutMixin,Container):
 		hboxClone = HBox(None,
 					self._createNameWithPrefix(prefix),
 					self.size,
-					self.min_size, 
-					self.max_size, 
-					self.helptext, 
-					self.position, 
-					self.style, 
+					self.min_size,
+					self.max_size,
+					self.helptext,
+					self.position,
+					self.style,
 					self.hexpand,
 					self.vexpand,
 					self.font,
@@ -527,12 +478,12 @@ class HBox(HBoxLayoutMixin,Container):
 					self.background_image,
 					self.opaque,
 					self.margins)
-					
+
 		hboxClone.addChildren(self._cloneChildren(prefix))
-		
+
 		return hboxClone
-		
-								  
+
+
 class Window(VBoxLayoutMixin,Container):
 	"""
 	A L{VBox} with a draggable title bar aka a window
@@ -544,23 +495,23 @@ class Window(VBoxLayoutMixin,Container):
 	  - titlebar_height: The height of the window title bar
 	"""
 
-	ATTRIBUTES = Container.ATTRIBUTES + [ UnicodeAttr('title'), 
-										  IntAttr('titlebar_height') 
+	ATTRIBUTES = Container.ATTRIBUTES + [ UnicodeAttr('title'),
+										  IntAttr('titlebar_height')
 										]
 
 	DEFAULT_TITLE = u"title"
 	DEFAULT_TITLE_HEIGHT = 0
 	DEFAULT_POSITION_TECHNIQUE = "automatic"
 
-	def __init__(self, 
-				 parent = None, 
+	def __init__(self,
+				 parent = None,
 				 name = None,
 				 size = None,
-				 min_size = None, 
-				 max_size = None, 
-				 helptext = None, 
-				 position = None, 
-				 style = None, 
+				 min_size = None,
+				 max_size = None,
+				 helptext = None,
+				 position = None,
+				 style = None,
 				 hexpand = None,
 				 vexpand = None,
 				 font = None,
@@ -579,16 +530,16 @@ class Window(VBoxLayoutMixin,Container):
 				 _real_widget = None,
 				 title = None,
 				 titlebar_height = None):
-		
-		super(Window,self).__init__(parent=parent, 
-								    name=name, 
-								    size=size, 
-								    min_size=min_size, 
+
+		super(Window,self).__init__(parent=parent,
+								    name=name,
+								    size=size,
+								    min_size=min_size,
 								    max_size=max_size,
-								    helptext=helptext, 
+								    helptext=helptext,
 								    position=position,
-								    style=style, 
-								    hexpand=hexpand, 
+								    style=style,
+								    hexpand=hexpand,
 								    vexpand=vexpand,
 								    font=font,
 								    base_color=base_color,
@@ -611,22 +562,22 @@ class Window(VBoxLayoutMixin,Container):
 			self.titlebar_height = titlebar_height
 		else:
 			self.titlebar_height = self.real_font.getHeight() + 4
-		
-		if title is not None: 
+
+		if title is not None:
 			self.title = title
 		else:
 			self.title = self.DEFAULT_TITLE
 
 	def clone(self, prefix):
-		
-		windowClone = Window(None, 
+
+		windowClone = Window(None,
 					self._createNameWithPrefix(prefix),
 					self.size,
-					self.min_size, 
-					self.max_size, 
-					self.helptext, 
-					self.position, 
-					self.style, 
+					self.min_size,
+					self.max_size,
+					self.helptext,
+					self.position,
+					self.style,
 					self.hexpand,
 					self.vexpand,
 					self.font,
@@ -646,11 +597,11 @@ class Window(VBoxLayoutMixin,Container):
 					self.title,
 					self.titlebar_height
 				    )
-				     
+
 		windowClone.addChildren(self._cloneChildren(prefix))
-				     
+
 		return windowClone
-			
+
 	def _getTitle(self): return gui2text(self.real_widget.getCaption())
 	def _setTitle(self,text): self.real_widget.setCaption(text2gui(text))
 	title = property(_getTitle,_setTitle)
