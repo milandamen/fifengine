@@ -332,7 +332,7 @@ namespace FIFE {
 		return ABS(a - b) <= 0.00001;
 	}
 
-	void SDLImage::render(const Rect& rect, uint8_t alpha, uint8_t const* /*unused rgb*/) {
+	void SDLImage::render(const Rect& rect, uint8_t alpha, uint8_t const* rgb) {
 		if (alpha == 0) {
 			return;
 		}
@@ -407,9 +407,6 @@ namespace FIFE {
 				}
 			}
 		}
-	}
-
-	void SDLImage::render(const Rect& rect, const ImagePtr& overlay, uint8_t alpha, uint8_t const* rgb) {
 	}
 
 	void SDLImage::finalize() {
@@ -682,7 +679,11 @@ namespace FIFE {
 			src_surface->format->Bmask, src_surface->format->Amask);
 
 		SDL_SetAlpha(src_surface, 0, 0);
-		SDL_Rect srcrect = { region.x, region.y, region.w, region.h };
+		SDL_Rect srcrect = {
+			static_cast<Sint16>(region.x),
+			static_cast<Sint16>(region.y),
+			static_cast<Uint16>(region.w),
+			static_cast<Uint16>(region.h) };
 		SDL_BlitSurface(src_surface, &srcrect, surface, NULL);
 		SDL_SetAlpha(src_surface, SDL_SRCALPHA, 0);
 

@@ -54,6 +54,7 @@ namespace FIFE {
 	public:
 		virtual ~InstanceActionListener() {};
 		virtual void onInstanceActionFinished(Instance* instance, Action* action) = 0;
+		virtual void onInstanceActionCancelled(Instance* instance, Action* action) = 0;
 		virtual void onInstanceActionFrame(Instance* instance, Action* action, int32_t frame) = 0;
 	};
 
@@ -261,25 +262,39 @@ namespace FIFE {
 		 */
 		void move(const std::string& actionName, const Location& target, const double speed, const std::string& costId = "");
 
-		/** Performs given named action to the instance. Performs no movement
+		/** Performs given named action to the instance, once only. Performs no movement
 		 *  @param actionName name of the action
 		 *  @param direction coordinates for cell towards instance is heading to when performing the action
-		 *  @param repeating in case true, keeps repeating this action
 		 */
-		void act(const std::string& actionName, const Location& direction, bool repeating=false);
+		void actOnce(const std::string& actionName, const Location& direction);
 
-		/** Performs given named action to the instance. Performs no movement
+		/** Performs given named action to the instance, once only. Performs no movement
 		 *  @param actionName name of the action
 		 *  @param rotation rotation which the instance use when performing the action
-		 *  @param repeating in case true, keeps repeating this action
 		 */
-		void act(const std::string& actionName, int32_t rotation, bool repeating=false);
+		void actOnce(const std::string& actionName, int32_t rotation);
 
-		/** Performs given named action to the instance. Performs no movement and use current rotation
+		/** Performs given named action to the instance, once only. Performs no movement and use current rotation
 		 *  @param actionName name of the action
-		 *  @param repeating in case true, keeps repeating this action
 		 */
-		void act(const std::string& actionName, bool repeating=false);
+		void actOnce(const std::string& actionName);
+
+		/** Performs given named action to the instance, repeated. Performs no movement
+		 *  @param actionName name of the action
+		 *  @param direction coordinates for cell towards instance is heading to when performing the action
+		 */
+		void actRepeat(const std::string& actionName, const Location& direction);
+
+		/** Performs given named action to the instance, repeated Performs no movement
+		 *  @param actionName name of the action
+		 *  @param rotation rotation which the instance use when performing the action
+		 */
+		void actRepeat(const std::string& actionName, int32_t rotation);
+
+		/** Performs given named action to the instance, repeated. Performs no movement and use current rotation
+		 *  @param actionName name of the action
+		 */
+		void actRepeat(const std::string& actionName);
 
 		/** Causes instance to "say" given text (shown on screen next to the instance)
 		 *  @param text text to say. If "" given, clear the text
@@ -423,6 +438,14 @@ namespace FIFE {
 		/** Returns cost id. In case there is no it returns the object cost id.
 		 */
 		std::string getCostId();
+
+		/** Returns speed modifier.
+		 */
+		double getSpeed();
+
+		/** Returns true if instance or object have special speed modifier otherwise false.
+		 */
+		bool isSpecialSpeed();
 
 		/** Returns true if it is multi cell otherwise false
 		 */
@@ -596,7 +619,6 @@ namespace FIFE {
 		double m_cost;
 		//! holds cost id
 		std::string m_costId;
-
 		//! vector that holds all multi instances
 		std::vector<Instance*> m_multiInstances;
 
@@ -604,6 +626,8 @@ namespace FIFE {
 		Instance& operator=(const Instance&);
 		//! Finalize current action
 		void finalizeAction();
+		//! Cancel current action
+		void cancelAction();
 		//! Initialize action for use
 		void initializeAction(const std::string& actionName);
 		//! Moves instance. Returns true if finished

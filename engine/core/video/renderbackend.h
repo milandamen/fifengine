@@ -103,6 +103,13 @@ namespace FIFE {
 		TEXTURE_FILTER_ANISOTROPIC = 3
 	};
 
+	enum RenderDataType {
+		RENDER_DATA_WITHOUT_Z = 0,
+		RENDER_DATA_TEXTURE_Z = 1,
+		RENDER_DATA_TEXCOLOR_Z = 2,
+		RENDER_DATA_MULTITEXTURE_Z = 3
+	};
+
 	class GuiVertex {
 	public:
 		DoublePoint position;
@@ -211,11 +218,9 @@ namespace FIFE {
 		 */
 		virtual void addImageToArray(uint32_t id, const Rect& rec, float const* st, uint8_t alpha, uint8_t const* rgba) = 0;
 
-		virtual void addImageToArray(const Rect& rect, uint32_t id1, float const* st1, uint32_t id2, float const* st2, uint8_t alpha, uint8_t const* rgba) = 0;
-
 		/** Dirty helper function to change the render infos
 		 */
-		virtual void changeRenderInfos(uint16_t elements, int32_t src, int32_t dst, bool light, bool stentest, uint8_t stenref, GLConstants stenop, GLConstants stenfunc, OverlayType otype = OVERLAY_TYPE_NONE) = 0;
+		virtual void changeRenderInfos(RenderDataType type, uint16_t elements, int32_t src, int32_t dst, bool light, bool stentest, uint8_t stenref, GLConstants stenop, GLConstants stenfunc, OverlayType otype = OVERLAY_TYPE_NONE) = 0;
 
 		/** Creates a Screenshot and saves it to a file.
 		 */
@@ -352,6 +357,34 @@ namespace FIFE {
 		 */
 		int32_t getMaxAnisotropy() const;
 
+		/** Enables or disables monochrome rendering.
+		 * Note! Works only for OpenGL backends.
+		 */
+		void setMonochromeEnabled(bool enabled);
+
+		/** @see setMonochromeEnabled
+		 */
+		bool isMonochromeEnabled() const;
+
+		/** Enables or disables depth buffer rendering.
+		 * Note! Works only for OpenGL backend.
+		 */
+		void setDepthBufferEnabled(bool enabled);
+
+		/** @see setMonochromeEnabled
+		 */
+		bool isDepthBufferEnabled() const;
+
+		/** Sets the value for alpha test.
+		 * Discards a fragment if its value is not greater. Only used if depth buffer is enabled. 
+		 * Note! Works only for OpenGL backend.
+		 */
+		void setAlphaTestValue(float alpha);
+
+		/** @see setAlphaValue
+		 */
+		float getAlphaTestValue() const;
+
 		/** Sets whether to use the colorkey feature
 		*/
 		void setColorKeyEnabled(bool colorkeyenable);
@@ -439,6 +472,12 @@ namespace FIFE {
 		TextureFiltering m_textureFilter;
 		// max anisotropy
 		int32_t m_maxAnisotropy;
+		// monochrome rendering
+		bool m_monochrome;
+		// depth buffer rendering
+		bool m_isDepthBuffer;
+		// alpha test value
+		float m_alphaValue;
 
 		/** Clears any possible clip areas
 		 *  @see pushClipArea

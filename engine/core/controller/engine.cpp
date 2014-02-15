@@ -51,7 +51,6 @@
 #ifdef HAVE_OPENGL
 #include "video/opengl/fife_opengl.h"
 #include "video/opengl/renderbackendopengl.h"
-#include "video/opengle/renderbackendopengle.h"
 #endif
 #include "video/sdl/renderbackendsdl.h"
 #include "loaders/native/video/imageloader.h"
@@ -195,14 +194,8 @@ namespace FIFE {
 			FL_LOG(_log, "SDL Render backend created");
 		} else {
 #ifdef HAVE_OPENGL
-			if (rbackend == "OpenGLe") {
-				m_renderbackend = new RenderBackendOpenGLe(m_settings.getColorKey());
-				FL_LOG(_log, "OpenGLe Render backend created");
-				FL_LOG(_log, "This is highly experimental so bear in mind some features may not work/work correctly.");
-			} else {
-				m_renderbackend = new RenderBackendOpenGL(m_settings.getColorKey());
-				FL_LOG(_log, "OpenGL Render backend created");
-			}
+			m_renderbackend = new RenderBackendOpenGL(m_settings.getColorKey());
+			FL_LOG(_log, "OpenGL Render backend created");
 #else
 			m_renderbackend = new RenderBackendSDL(m_settings.getColorKey());
 			// Remember  the choice so we pick the right graphics class.
@@ -219,6 +212,9 @@ namespace FIFE {
 		m_renderbackend->setNPOTEnabled(m_settings.isGLUseNPOT());
 		m_renderbackend->setTextureFiltering(m_settings.getGLTextureFiltering());
 		m_renderbackend->setMipmappingEnabled(m_settings.isGLUseMipmapping());
+		m_renderbackend->setMonochromeEnabled(m_settings.isGLUseMonochrome());
+		m_renderbackend->setDepthBufferEnabled(m_settings.isGLUseDepthBuffer());
+		m_renderbackend->setAlphaTestValue(m_settings.getGLAlphaTestValue());
 		if (m_settings.isFrameLimitEnabled()) {
 			m_renderbackend->setFrameLimitEnabled(true);
 			m_renderbackend->setFrameLimit(m_settings.getFrameLimit());

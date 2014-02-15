@@ -99,6 +99,9 @@ class InstanceActionListener(fife.InstanceActionListener):
 	def onInstanceActionFinished(self, instance, action):
 		instance.move('walk', self._test.createRandomTarget(), 4.0)
 
+	def onInstanceActionCancelled(self, instance, action):
+		pass
+		
 	def onInstanceActionFrame(self, instance, action, frame):
 		pass
 	
@@ -194,10 +197,10 @@ class MultiPathfinderTest(test.Test):
 		self._groundlayer = self._map.getLayer("ground_layer")
 		self._player = self._actorlayer.getInstance("player")
 		self._frigate1 = self._actorlayer.getInstance("frigate1")
-		self._frigate1.act("stand", self._frigate1.getFacingLocation())
+		self._frigate1.actOnce("stand", self._frigate1.getFacingLocation())
 		self._frigate1.addActionListener(self._actionlistener)
 		self._frigate2 = self._actorlayer.getInstance("frigate2")
-		self._frigate2.act("stand", self._frigate2.getFacingLocation())
+		self._frigate2.actOnce("stand", self._frigate2.getFacingLocation())
 		self._frigate2.addActionListener(self._actionlistener)
 		
 		self._camera.setLocation(self._player.getLocation())

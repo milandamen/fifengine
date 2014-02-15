@@ -299,7 +299,7 @@ namespace FIFE {
 				fsCheck = true;
 			}
 
-			if ((m_screenModes[i].isOpenGL() && (renderer == "OpenGL" || renderer == "OpenGLe")) || (!m_screenModes[i].isOpenGL() && renderer == "SDL")){
+			if ((m_screenModes[i].isOpenGL() && renderer == "OpenGL" ) || (!m_screenModes[i].isOpenGL() && renderer == "SDL")){
 				rendCheck = true;
 			}
 
@@ -340,7 +340,7 @@ namespace FIFE {
 		}
 
 		if (!foundMode) {
-			throw NotSupported("Could not find a maching screen mode for the values given!");
+			throw NotSupported("Could not find a matching screen mode for the values given!");
 		}
 
 		return mode;
