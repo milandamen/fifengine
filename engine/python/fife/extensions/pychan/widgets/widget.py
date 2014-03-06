@@ -324,16 +324,19 @@ class Widget(object):
 		"""
 		Show the widget and all contained widgets.
 		"""
-		if self._visible: return
+		
+		# in case of top widgets the self_visible is important,
+		# otherwise you will nerver see a widget
+		if self.isVisible() and self.parent: return
+		if self._visible and not self.parent: return
 
+		self.beforeShow()
+		#show real widget to distribute a widgetShown event.
+		self.real_widget.setVisible(True)
 		if self.parent:
-			self.beforeShow()
-			self.real_widget.setVisible(True)
 			self.parent.adaptLayout()
-			self._visible = True
 		else:
 			self.adaptLayout()
-			self.beforeShow()
 			get_manager().show(self)
 			self._visible = True
 
@@ -341,18 +344,21 @@ class Widget(object):
 		"""
 		Hide the widget and all contained widgets.
 		"""
-		if not self._visible: return
 
+		# isSetVisible() is needed for some special case,
+		# like hide a child if its parent is already hidden
+		if not self.isVisible() and not self.isSetVisible(): return
+		if not self.parent and not self._visible: return
+		
+		#Hide real widget to distribute a widgetHidden event.
+		self.real_widget.setVisible(False)
 		if self.parent:
-			self.real_widget.setVisible(False)
-			self._visible = False
 			self.parent.adaptLayout()
 		else:
 			get_manager().hide(self)
+			self._visible = False
 
-		self._visible = False
 		self.afterHide()
-
 
 	def isVisible(self):
 		"""
@@ -360,7 +366,15 @@ class Widget(object):
 		either directly or as part of a container widget.
 		"""
 
-		return self._visible
+		return self.real_widget.isVisible()
+
+	def isSetVisible(self):
+		"""
+		Check the widget visible flag.
+		It checks not if the widget is currently shown!
+		"""
+		
+		return self.real_widget.isSetVisible()
 
 	def adaptLayout(self,recurse=True):
 		"""
