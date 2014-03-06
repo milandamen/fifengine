@@ -2,7 +2,7 @@
 shopt -s expand_aliases
 
 #
-# A build script for building Fife Engine on Debian based linux distributions.
+# A build script for building Fife Engine on a mac osx machine
 #
 # https://github.com/fifengine/fifengine
 #
@@ -13,7 +13,7 @@ echo -e "\t----------------------------"
 echo
 
 # how many virtual processors are there?
-export NUMCPUS=`grep ^processor /proc/cpuinfo | wc -l`
+export NUMCPUS=`sysctl -n hw.ncpu`
 
 # parallel make
 alias pmake='time ionice -c3 nice -n 19 make -j$NUMCPUS --load-average=$NUMCPUS'
@@ -24,13 +24,12 @@ function install_dependencies() {
     echo -e "\e[1;33mInstalling package dependencies...\e[0m"
     echo
 
-    sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu/ quantal main universe"
-    sudo apt-get update -y &> /dev/null
-    # https://github.com/fifengine/fifengine/wiki/Building-on-linux
-    sudo apt-get install build-essential cmake python-dev scons swig \
-                 libsdl1.2-dev libsdl-ttf2.0-dev libsdl-image1.2-dev \
-                 libvorbis-dev libalut-dev libxcursor-dev libopenal-dev libasound2-dev zlib1g-dev \
-                 libboost-dev libboost-regex-dev libboost-system-dev libboost-filesystem-dev libboost-test-dev
+    brew update
+    brew install swig sdl_image sdl_mixer sdl_ttf scons boost boost-jam libvorbis libogg
+
+    easy_install pip
+    pip install pyrex --allow-all-external --allow-unverified pyrex
+    pip install pyyaml cython
 
     echo -e "\e[1;32m> Done.\e[0m"
     echo

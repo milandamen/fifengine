@@ -114,9 +114,14 @@ namespace FIFE {
 		nsappload();
 
 		// Create an autorelease pool, so autoreleased SDL objects don't leak.
+#ifdef OSX_109
+		Class NSAutoreleasePool = objc_getClass("NSAutoreleasePool");
+		m_autoreleasePool = class_createInstance(NSAutoreleasePool, 0);
+#else
 		objc_object *NSAutoreleasePool = objc_getClass("NSAutoreleasePool");
 		m_autoreleasePool =
 			objc_msgSend(NSAutoreleasePool, sel_registerName("new"));
+#endif
 #endif
 		m_logmanager = LogManager::instance();
 	}
@@ -341,7 +346,7 @@ namespace FIFE {
 		m_timemanager->update();
 
 		m_targetrenderer->render();
-		if (m_model->getMapCount() == 0) {
+		if (m_model->getActiveCameraCount() == 0) {
 			m_renderbackend->clearBackBuffer();
 			m_offrenderer->render();
 		} else {
