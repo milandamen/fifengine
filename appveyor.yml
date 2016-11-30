@@ -8,7 +8,7 @@ branches:
 
 clone_depth: 5
 
-version: 0.4.0
+version: '0.4.0.{build}'
 
 platform:
   - x86
@@ -122,13 +122,13 @@ after_build:
   # package dependencies artifact
   - call %APPVEYOR_BUILD_FOLDER%\build\appveyor\copy-boost-to-includes.bat
   - cd C:\projects\fifengine-dependencies\includes
-  - 7z a -tzip -mx9 "%APPVEYOR_BUILD_FOLDER%\libfife-dependencies-%VERSION%-%COMPILER%.zip"
-  - appveyor PushArtifact "%APPVEYOR_BUILD_FOLDER%\libfife-dependencies-%VERSION%-%COMPILER%.zip"
+  - 7z a -tzip -mx9 "%APPVEYOR_BUILD_FOLDER%\libfife-dependencies-%version%-%COMPILER%.zip"
+  - appveyor PushArtifact "%APPVEYOR_BUILD_FOLDER%\libfife-dependencies-%version%-%COMPILER%.zip"
 
   # package libfife artifact
   - cd c:\fife\install
-  - 7z a -tzip -mx9 "%APPVEYOR_BUILD_FOLDER%\libfife-%VERSION%-%COMPILER%.zip"
-  - appveyor PushArtifact "%APPVEYOR_BUILD_FOLDER%\libfife-%VERSION%-%COMPILER%.zip"
+  - 7z a -tzip -mx9 "%APPVEYOR_BUILD_FOLDER%\libfife-%version%-%COMPILER%.zip"
+  - appveyor PushArtifact "%APPVEYOR_BUILD_FOLDER%\libfife-%version%-%COMPILER%.zip"
 
   # package Python Installer artifact
   - xcopy /Y /S "C:\projects\build\*.py" "%APPVEYOR_BUILD_FOLDER%\engine\python\fife\"
@@ -136,9 +136,9 @@ after_build:
   - xcopy /Y /S "C:\projects\fifengine-dependencies\includes\bin\*.dll" "%APPVEYOR_BUILD_FOLDER%\engine\python\fife\"
   - xcopy /Y /S "C:\projects\fifengine-dependencies\includes\lib\x86\*.dll" "%APPVEYOR_BUILD_FOLDER%\engine\python\fife\"
   - cd %APPVEYOR_BUILD_FOLDER%
-  - python setup.py set_metadata --version=%VERSION% bdist_msi --target-version="%PYTHON_VERSION%"
+  - python setup.py set_metadata --version=%version% bdist_msi --target-version="%PYTHON_VERSION%"
   - dir %APPVEYOR_BUILD_FOLDER%\dist
-  - appveyor PushArtifact "%APPVEYOR_BUILD_FOLDER%\dist\libfife-%VERSION%.win32-py%PYTHON_VERSION%.msi"
+  - appveyor PushArtifact "%APPVEYOR_BUILD_FOLDER%\dist\libfife-%version%.win32-py%PYTHON_VERSION%.msi"
 
   - dir C:\projects\build /s
   - dir "%APPVEYOR_BUILD_FOLDER%\engine\python\fife\" /s
